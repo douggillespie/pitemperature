@@ -22,9 +22,16 @@ public class PiTempControl extends PamControlledUnit {
 	private PiTempSidePanel sidePanel;
 	
 	private Timer timer;
+
+	private String userHome;
+	
+	private volatile String lastTempStr;
 	
 	public PiTempControl(String unitName) {
 		super(unitType, unitName);
+
+		userHome = System.getProperty("user.home");
+		
 		timer = new Timer(2000, new ActionListener() {
 			
 			@Override
@@ -37,14 +44,13 @@ public class PiTempControl extends PamControlledUnit {
 
 	protected void getTemperature() {
 		String cmd = "vcgencmd measure_temp";
-		ArrayList<String> cmds = new ArrayList<String>();
-		cmds.add(cmd);
+//		ArrayList<String> cmds = new ArrayList<String>();
+//		cmds.add(cmd);
 		ProcessBuilder pb = new ProcessBuilder();
 		Process process = null;
 		InputStream inputStream;
 		BufferedReader reader = null;
 		String answer = null;
-		String ud = System.getProperty("user.home");
 		try {
 			pb.command("sh", "-c", cmd);
 			process = pb.start();
@@ -53,15 +59,26 @@ public class PiTempControl extends PamControlledUnit {
 			answer = reader.readLine();
 		} catch (IOException e) {
 //			System.out.println(e.getMessage());
-			sidePanel.setTemp("Read error");
+			tellTemperature("Read error");
 			return;
 		}
+		tellTemperature(answer);
+			
+		
+	}
+	
+	private void tellTemperature(String temStr) {
+		lastTempStr = temStr;
 		synchronized (this) {
 			if (sidePanel != null) {
-				sidePanel.setTemp(answer);
+				sidePanel.setTemp(temStr);
 			}
 		}
-		
+	}
+
+	@Override
+	public String getModuleSummary(boolean clear) {
+		return lastTempStr;
 	}
 
 	@Override
