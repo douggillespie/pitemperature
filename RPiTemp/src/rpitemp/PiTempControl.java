@@ -77,7 +77,7 @@ public class PiTempControl extends PamControlledUnit {
 	}
 
 	@Override
-	public String getModuleSummary(boolean clear) {
+	public String getModuleSummary(boolean clear, String format) {
 		return lastTempStr;
 	}
 
